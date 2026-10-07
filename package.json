@@ -1,0 +1,21 @@
+{
+  "name": "roxuverse-backend",
+  "version": "1.0.0",
+  "main": "src/bootstrap.js",
+  "scripts": {
+    "start": "node src/bootstrap.js",
+    "dev": "node --watch src/index.js",
+    "migrate": "node src/migrate.js",
+    "seed": "node src/seed.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.0"
+  },
+  "engines": { "node": ">=20" }
+}
