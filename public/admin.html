@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROXUVERSE • Admin Panel</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#0d1017;--panel:#1a1e28;--panel-2:#242a36;--line:rgba(255,255,255,.10);
+  --text:#f2f3f5;--muted:#9ba1ac;--red:#ed1c24;--green:#18e36b;--cyan:#18d8f3;
+  --purple:#875cff;--yellow:#ffd31a;--orange:#ff9500;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',system-ui,sans-serif;min-height:100vh}
+button,input,select,textarea{font-family:inherit;outline:none;border:0;background:none;color:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+
+#loginView{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 30%,rgba(237,28,36,.16),transparent 50%),var(--bg);padding:20px}
+.login-card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);
+  border-radius:20px;padding:36px 28px;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+.login-card h1{font-size:26px;letter-spacing:.14em;text-align:center;margin-bottom:6px}
+.login-card p{color:var(--muted);text-align:center;font-size:11px;letter-spacing:.24em;
+  font-weight:700;margin-bottom:26px}
+.field{display:flex;align-items:center;gap:12px;height:54px;padding:0 16px;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:12px;margin-bottom:12px}
+.field i{color:var(--muted);font-size:14px}
+.field input{flex:1;height:100%;color:#fff;font-size:15px}
+.btn-primary{width:100%;height:54px;border-radius:12px;background:linear-gradient(135deg,#f1282e,#b80d14);
+  color:#fff;font-weight:800;letter-spacing:.14em;font-size:13px;margin-top:6px;
+  box-shadow:0 10px 26px rgba(237,28,36,.35);transition:transform .15s ease}
+.btn-primary:active{transform:scale(.98)}
+#loginErr{color:#ff5c63;font-size:12px;text-align:center;min-height:18px;margin:8px 0;font-weight:600}
+
+#appView{display:none;min-height:100vh}
+#appView.show{display:block}
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;
+  padding:14px 22px;background:rgba(13,16,23,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line)}
+.brand{font-size:17px;font-weight:800;letter-spacing:.14em}
+.brand i{color:var(--red);margin-right:8px}
+.topbar .role{padding:4px 10px;border-radius:999px;background:rgba(237,28,36,.16);
+  border:1px solid rgba(237,28,36,.4);color:var(--red);font-size:10px;
+  letter-spacing:.16em;font-weight:800}
+.topbar .spacer{flex:1}
+.topbar .who{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.btn-logout{padding:8px 14px;border-radius:10px;background:rgba(255,255,255,.05);
+  border:1px solid var(--line);font-size:11px;letter-spacing:.12em;font-weight:700}
+
+.nav{display:flex;gap:6px;padding:14px 22px 0;overflow-x:auto;flex-wrap:wrap}
+.nav-btn{padding:10px 16px;border-radius:10px;background:rgba(255,255,255,.04);
+  border:1px solid var(--line);font-size:11px;letter-spacing:.10em;font-weight:800;
+  color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:8px;
+  transition:all .15s ease}
+.nav-btn.active{background:rgba(237,28,36,.16);border-color:rgba(237,28,36,.45);color:#fff}
+.nav-btn i{font-size:12px}
+
+.content{padding:22px}
+.section{display:none}
+.section.active{display:block}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.section-head h2{font-size:18px;letter-spacing:.12em;font-weight:800}
+.section-head .actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:22px}
+.stat-card{padding:18px;border-radius:14px;background:linear-gradient(145deg,#242a36,#1a1e28);
+  border:1px solid var(--line)}
+.stat-card small{color:var(--muted);font-size:10px;letter-spacing:.18em;font-weight:800;display:block;margin-bottom:8px}
+.stat-card strong{font-size:26px;font-weight:800;letter-spacing:.02em}
+.stat-card i{font-size:16px;margin-right:8px;vertical-align:middle}
+.stat-red i{color:var(--red)}.stat-green i{color:var(--green)}.stat-cyan i{color:var(--cyan)}
+.stat-yellow i{color:var(--yellow)}.stat-purple i{color:var(--purple)}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:600px}
+thead{background:rgba(255,255,255,.03)}
+th{padding:12px 14px;text-align:left;font-size:10px;letter-spacing:.18em;
+  font-weight:800;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+tbody tr:last-child td{border-bottom:0}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;
+  font-size:9.5px;font-weight:800;letter-spacing:.10em}
+.tag.green{background:rgba(24,227,107,.16);border:1px solid rgba(24,227,107,.42);color:var(--green)}
+.tag.red{background:rgba(237,28,36,.16);border:1px solid rgba(237,28,36,.42);color:var(--red)}
+.tag.yellow{background:rgba(255,211,26,.16);border:1px solid rgba(255,211,26,.42);color:var(--yellow)}
+.tag.cyan{background:rgba(24,216,243,.16);border:1px solid rgba(24,216,243,.42);color:var(--cyan)}
+.tag.purple{background:rgba(135,92,255,.16);border:1px solid rgba(135,92,255,.42);color:var(--purple)}
+.tag.gray{background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--muted)}
+
+.btn{padding:8px 12px;border-radius:9px;font-size:10.5px;font-weight:800;letter-spacing:.10em;
+  display:inline-flex;align-items:center;gap:6px;transition:transform .15s ease;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,#f1282e,#b80d14);color:#fff}
+.btn-green{background:rgba(24,227,107,.16);border:1px solid rgba(24,227,107,.42);color:var(--green)}
+.btn-red{background:rgba(237,28,36,.16);border:1px solid rgba(237,28,36,.42);color:var(--red)}
+.btn-cyan{background:rgba(24,216,243,.16);border:1px solid rgba(24,216,243,.42);color:var(--cyan)}
+.btn-ghost{background:rgba(255,255,255,.05);border:1px solid var(--line);color:#e8e8e8}
+.btn-yellow{background:rgba(255,211,26,.16);border:1px solid rgba(255,211,26,.42);color:var(--yellow)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal-overlay.show{display:flex}
+.modal-box{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);
+  border-radius:20px;padding:24px;max-height:90vh;overflow-y:auto}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-head h3{font-size:15px;letter-spacing:.14em;font-weight:800}
+.modal-close{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.05);
+  border:1px solid var(--line);display:grid;place-items:center;font-size:13px}
+.field-label{display:block;font-size:10px;letter-spacing:.16em;font-weight:800;color:var(--muted);margin:12px 0 6px}
+.input{padding:11px 14px;background:var(--panel-2);border:1px solid var(--line);
+  border-radius:10px;color:#fff;font-size:13px;width:100%}
+.input:focus{border-color:rgba(237,28,36,.55)}
+textarea.input{min-height:80px;resize:vertical;font-family:inherit}
+.checkbox-row{display:flex;align-items:center;gap:10px;margin:12px 0;font-size:12px;color:var(--muted)}
+.checkbox-row input{width:18px;height:18px;accent-color:var(--red)}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translate(-50%,20px);opacity:0;
+  padding:12px 20px;border-radius:12px;background:rgba(38,43,56,.98);border:1px solid var(--line);
+  font-size:12.5px;font-weight:600;letter-spacing:.04em;z-index:999;
+  transition:opacity .25s ease,transform .25s ease;box-shadow:0 20px 40px rgba(0,0,0,.5);max-width:88vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{border-color:rgba(237,28,36,.5)}
+
+.empty{padding:40px;text-align:center;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+
+<div id="loginView">
+  <div class="login-card">
+    <h1>ROXUVERSE</h1>
+    <p>ADMIN PANEL</p>
+    <label class="field">
+      <i class="fa-solid fa-user-shield"></i>
+      <input id="loginUser" type="text" placeholder="Admin username" autocomplete="username">
+    </label>
+    <label class="field">
+      <i class="fa-solid fa-lock"></i>
+      <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password">
+    </label>
+    <div id="loginErr"></div>
+    <button class="btn-primary" onclick="doLogin()">SIGN IN <i class="fa-solid fa-arrow-right"></i></button>
+  </div>
+</div>
+
+<div id="appView">
+  <div class="topbar">
+    <div class="brand"><i class="fa-solid fa-shield-halved"></i>ROXUVERSE</div>
+    <span class="role">ADMIN</span>
+    <div class="spacer"></div>
+    <span class="who" id="whoami">—</span>
+    <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> LOGOUT</button>
+  </div>
+
+  <div class="nav" id="navTabs">
+    <button class="nav-btn active" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> DASHBOARD</button>
+    <button class="nav-btn" data-tab="users"><i class="fa-solid fa-users"></i> USERS</button>
+    <button class="nav-btn" data-tab="deposits"><i class="fa-solid fa-money-bill-transfer"></i> DEPOSITS</button>
+    <button class="nav-btn" data-tab="products"><i class="fa-solid fa-store"></i> PRODUCTS</button>
+    <button class="nav-btn" data-tab="tools"><i class="fa-solid fa-toolbox"></i> TOOLS</button>
+    <button class="nav-btn" data-tab="payments"><i class="fa-solid fa-credit-card"></i> PAYMENT</button>
+    <button class="nav-btn" data-tab="chat"><i class="fa-solid fa-comments"></i> CHAT</button>
+    <button class="nav-btn" data-tab="notif"><i class="fa-solid fa-bullhorn"></i> BROADCAST</button>
+    <button class="nav-btn" data-tab="trx"><i class="fa-solid fa-receipt"></i> TRANSACTIONS</button>
+  </div>
+
+  <div class="content">
+    <div class="section active" id="tab-dashboard"></div>
+    <div class="section" id="tab-users"></div>
+    <div class="section" id="tab-deposits"></div>
+    <div class="section" id="tab-products"></div>
+    <div class="section" id="tab-tools"></div>
+    <div class="section" id="tab-payments"></div>
+    <div class="section" id="tab-chat"></div>
+    <div class="section" id="tab-notif"></div>
+    <div class="section" id="tab-trx"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = location.origin;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[c]);
+const fmtRp = n => 'Rp ' + Number(n||0).toLocaleString('id-ID');
+const fmtDate = s => s ? new Date(s).toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'}) : '-';
+
+let TOKEN = localStorage.getItem('roxu_admin_token') || '';
+let ME = null;
+
+function toast(msg, isErr){
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.toggle('err', !!isErr);
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>el.classList.remove('show'), 2400);
+}
+
+async function api(path, { method='GET', body, auth=true } = {}){
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth && TOKEN) headers.Authorization = 'Bearer ' + TOKEN;
+  const res = await fetch(API + path, {
+    method, headers, body: body !== undefined ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json().catch(()=>({}));
+  if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+  return data;
+}
+
+async function doLogin(){
+  const u = $('loginUser').value.trim();
+  const p = $('loginPass').value.trim();
+  const err = $('loginErr');
+  err.textContent = '';
+  if (!u || !p) { err.textContent = 'Username & password wajib'; return; }
+  try {
+    const data = await api('/api/auth/login', { method:'POST', body:{ username:u, password:p }, auth:false });
+    if (!data.user?.is_admin) { err.textContent = 'Akun ini bukan admin'; return; }
+    TOKEN = data.token; ME = data.user;
+    localStorage.setItem('roxu_admin_token', TOKEN);
+    enterApp();
+  } catch(e) { err.textContent = e.message; }
+}
+
+function logout(){
+  localStorage.removeItem('roxu_admin_token');
+  TOKEN = ''; ME = null;
+  $('appView').classList.remove('show');
+  $('loginView').style.display = 'flex';
+}
+
+function enterApp(){
+  $('loginView').style.display = 'none';
+  $('appView').classList.add('show');
+  $('whoami').textContent = ME.username + ' (#' + ME.id + ')';
+  switchTab('dashboard');
+}
+
+document.querySelectorAll('.nav-btn').forEach(b => {
+  b.onclick = () => switchTab(b.dataset.tab);
+});
+
+function switchTab(tab){
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === 'tab-' + tab));
+  const fn = {
+    dashboard: renderDashboard, users: renderUsers, deposits: renderDeposits,
+    products: renderProducts, tools: renderTools, payments: renderPayments,
+    chat: renderChat, notif: renderBroadcast, trx: renderTrx
+  }[tab];
+  if (fn) fn();
+}
+
+function openModal(html){ $('modalBox').innerHTML = html; $('modal').classList.add('show'); }
+function closeModal(){ $('modal').classList.remove('show'); }
+
+async function renderDashboard(){
+  const el = $('tab-dashboard');
+  el.innerHTML = '<div class="empty"><i class="fa-solid fa-spinner fa-spin"></i> Loading stats...</div>';
+  try {
+    const s = await api('/api/admin/stats');
+    el.innerHTML = `
+      <div class="section-head"><h2>DASHBOARD</h2></div>
+      <div class="stats-grid">
+        <div class="stat-card stat-red"><small>USERS</small><strong><i class="fa-solid fa-users"></i>${s.users.total}</strong>
+          <div style="color:var(--muted);font-size:10px;margin-top:6px;letter-spacing:.1em">
+            ${s.users.new_24h} baru 24j • ${s.users.banned} banned</div></div>
+        <div class="stat-card stat-yellow"><small>PENDING DEPOSITS</small><strong><i class="fa-solid fa-clock"></i>${s.deposits.pending}</strong>
+          <div style="color:var(--muted);font-size:10px;margin-top:6px">${s.deposits.approved} approved • ${s.deposits.rejected} rejected</div></div>
+        <div class="stat-card stat-green"><small>TOTAL REVENUE</small><strong><i class="fa-solid fa-money-bill"></i>${fmtRp(s.deposits.revenue)}</strong></div>
+        <div class="stat-card stat-cyan"><small>TOTAL BALANCE USER</small><strong><i class="fa-solid fa-wallet"></i>${fmtRp(s.total_balance)}</strong></div>
+        <div class="stat-card stat-purple"><small>CHAT MESSAGES</small><strong><i class="fa-solid fa-comments"></i>${s.messages}</strong></div>
+      </div>`;
+  } catch(e){ el.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+}
+
+async function renderUsers(){
+  const el = $('tab-users');
+  el.innerHTML = `
+    <div class="section-head">
+      <h2>USERS</h2>
+      <div class="actions">
+        <input class="input" id="userSearch" placeholder="Cari username..." style="width:200px" onkeydown="if(event.key==='Enter')loadUsers()">
+        <button class="btn btn-ghost" onclick="loadUsers()"><i class="fa-solid fa-magnifying-glass"></i> Cari</button>
+        <button class="btn btn-primary" onclick="createUserModal()"><i class="fa-solid fa-plus"></i> NEW USER</button>
+      </div>
+    </div>
+    <div id="usersTable"></div>`;
+  loadUsers();
+}
+
+async function loadUsers(){
+  const t = $('usersTable');
+  if (!t) return;
+  t.innerHTML = '<div class="empty"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>';
+  const search = $('userSearch')?.value.trim() || '';
+  try {
+    const { users } = await api('/api/admin/users?search=' + encodeURIComponent(search) + '&limit=100');
+    if (!users.length) { t.innerHTML = '<div class="empty">Tidak ada user.</div>'; return; }
+    t.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Username</th><th>Balance</th><th>XP</th><th>Badge</th><th>Token</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${users.map(u => `
+        <tr>
+          <td>#${u.id}</td>
+          <td><strong>${esc(u.username)}</strong>${u.is_admin?' <span class="tag red">ADMIN</span>':''}</td>
+          <td>${fmtRp(u.balance)}</td>
+          <td>${u.xp}</td>
+          <td><span class="tag purple">${esc(u.badge)}</span></td>
+          <td>${u.token_limit===-1?'<span class="tag green">∞</span>':u.token_remaining+'/'+u.token_limit}</td>
+          <td>${u.is_banned?'<span class="tag red">BANNED</span>':'<span class="tag green">ACTIVE</span>'}</td>
+          <td>
+            <button class="btn btn-cyan" onclick="editUserModal(${u.id})"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-yellow" onclick="resetPassModal(${u.id})"><i class="fa-solid fa-key"></i></button>
+            <button class="btn btn-green" onclick="notifUserModal(${u.id})"><i class="fa-solid fa-bell"></i></button>
+            <button class="btn btn-red" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch(e){ t.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+}
+
+function createUserModal(){
+  openModal(`
+    <div class="modal-head"><h3>NEW USER</h3><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <label class="field-label">USERNAME</label><input class="input" id="nu_user">
+    <label class="field-label">PASSWORD</label><input class="input" id="nu_pass" type="text">
+    <label class="field-label">BALANCE (Rp)</label><input class="input" id="nu_bal" type="number" value="0">
+    <label class="field-label">XP</label><input class="input" id="nu_xp" type="number" value="0">
+    <label class="field-label">TOKEN LIMIT (-1 = unlimited)</label><input class="input" id="nu_tl" type="number" value="0">
+    <label class="checkbox-row"><input type="checkbox" id="nu_admin"> Jadikan admin</label>
+    <button class="btn-primary" style="margin-top:14px" onclick="createUser()">CREATE <i class="fa-solid fa-check"></i></button>
+  `);
+}
+
+async function createUser(){
+  try {
+    await api('/api/admin/users', { method:'POST', body:{
+      username: $('nu_user').value.trim(), password: $('nu_pass').value.trim(),
+      balance: Number($('nu_bal').value||0), xp: Number($('nu_xp').value||0),
+      token_limit: Number($('nu_tl').value||0), is_admin: $('nu_admin').checked
+    }});
+    closeModal(); toast('User dibuat'); loadUsers();
+  } catch(e){ toast(e.message, true); }
+}
+
+async function editUserModal(id){
+  try {
+    const d = await api('/api/admin/users/' + id);
+    const u = d.user;
+    openModal(`
+      <div class="modal-head"><h3>EDIT USER #${u.id}</h3><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+      <label class="field-label">USERNAME</label>
+      <input class="input" value="${esc(u.username)}" disabled style="opacity:.6">
+      <label class="field-label">BALANCE (Rp)</label><input class="input" id="eu_bal" type="number" value="${u.balance}">
+      <label class="field-label">XP</label><input class="input" id="eu_xp" type="number" value="${u.xp}">
+      <label class="field-label">BADGE</label>
+      <select class="input" id="eu_badge">
+        ${['basic','special','silver','gold','diamond','star'].map(b=>`<option value="${b}" ${u.badge===b?'selected':''}>${b}</option>`).join('')}
+      </select>
+      <label class="field-label">TOKEN REMAINING</label><input class="input" id="eu_tr" type="number" value="${u.token_remaining}">
+      <label class="field-label">TOKEN LIMIT (-1 = unlimited)</label><input class="input" id="eu_tl" type="number" value="${u.token_limit}">
+      <label class="checkbox-row"><input type="checkbox" id="eu_ban" ${u.is_banned?'checked':''}> BANNED</label>
+      <label class="checkbox-row"><input type="checkbox" id="eu_adm" ${u.is_admin?'checked':''}> ADMIN</label>
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
+        <div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:var(--muted);margin-bottom:10px">GRANT/REVOKE BADGE</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${['special','silver','gold','diamond','star'].map(b=>`
+            <button class="btn btn-green" onclick="grantBadge(${id},'${b}')">+ ${b}</button>
+            <button class="btn btn-red" onclick="revokeBadge(${id},'${b}')">− ${b}</button>`).join('')}
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:20px" onclick="saveUser(${id})">SAVE <i class="fa-solid fa-check"></i></button>
+    `);
+  } catch(e){ toast(e.message, true); }
+}
+
+async function saveUser(id){
+  try {
+    await api('/api/admin/users/' + id, { method:'PATCH', body:{
+      balance: Number($('eu_bal').value), xp: Number($('eu_xp').value),
+      badge: $('eu_badge').value, token_remaining: Number($('eu_tr').value),
+      token_limit: Number($('eu_tl').value), is_banned: $('eu_ban').checked,
+      is_admin: $('eu_adm').checked
+    }});
+    closeModal(); toast('User updated'); loadUsers();
+  } catch(e){ toast(e.message, true); }
+}
+
+async function grantBadge(id, badge){
+  try { await api(`/api/admin/users/${id}/grant-badge`, { method:'POST', body:{ badge } }); toast('Badge granted'); }
+  catch(e){ toast(e.message, true); }
+}
+async function revokeBadge(id, badge){
+  try { await api(`/api/admin/users/${id}/revoke-badge`, { method:'POST', body:{ badge } }); toast('Badge revoked'); }
+  catch(e){ toast(e.message, true); }
+}
+
+function resetPassModal(id){
+  openModal(`
+    <div class="modal-head"><h3>RESET PASSWORD #${id}</h3><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <label class="field-label">NEW PASSWORD</label><input class="input" id="rp_pass" type="text">
+    <button class="btn-primary" style="margin-top:14px" onclick="resetPass(${id})">RESET</button>
+  `);
+}
+async function resetPass(id){
+  try { await api(`/api/admin/users/${id}/reset-password`, { method:'POST', body:{ password: $('rp_pass').value } });
+    closeModal(); toast('Password direset'); } catch(e){ toast(e.message, true); }
+}
+
+function notifUserModal(id){
+  openModal(`
+    <div class="modal-head"><h3>SEND NOTIF #${id}</h3><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <label class="field-label">TITLE</label><input class="input" id="un_title">
+    <label class="field-label">MESSAGE</label><textarea class="input" id="un_msg"></textarea>
+    <button class="btn-primary" style="margin-top:14px" onclick="sendUserNotif(${id})">SEND</button>
+  `);
+}
+async function sendUserNotif(id){
+  try { await api('/api/admin/notifications/send', { method:'POST', body:{
+    user_id: id, title: $('un_title').value, message: $('un_msg').value }});
+    closeModal(); toast('Notif terkirim'); } catch(e){ toast(e.message, true); }
+}
+
+async function deleteUser(id){
+  if (!confirm('Hapus user #' + id + '?')) return;
+  try { await api('/api/admin/users/' + id, { method:'DELETE' }); toast('User dihapus'); loadUsers(); }
+  catch(e){ toast(e.message, true); }
+}
+
+async function renderDeposits(){
+  const el = $('tab-deposits');
+  el.innerHTML = `
+    <div class="section-head">
+      <h2>DEPOSITS</h2>
+      <div class="actions">
+        <select class="input" id="depFilter" onchange="loadDeposits()" style="width:auto">
+          <option value="">ALL</option><option value="pending">PENDING</option>
+          <option value="approved">APPROVED</option><option value="rejected">REJECTED</option>
+        </select>
+        <button class="btn btn-ghost" onclick="loadDeposits()"><i class="fa-solid fa-rotate"></i> REFRESH</button>
+      </div>
+    </div>
+    <div id="depTable"></div>`;
+  loadDeposits();
+}
+
+async function loadDeposits(){
+  const t = $('depTable');
+  t.innerHTML = '<div class="empty"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>';
+  const st = $('depFilter')?.value || '';
+  try {
+    const { deposits } = await api('/api/admin/deposits' + (st?'?status='+st:''));
+    if (!deposits.length) { t.innerHTML = '<div class="empty">Tidak ada deposit.</div>'; return; }
+    t.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Method</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+      <tbody>${deposits.map(d => `
+        <tr>
+          <td>#${d.id}</td><td><strong>${esc(d.username)}</strong></td>
+          <td>${fmtRp(d.amount)}</td><td><span class="tag cyan">${esc(d.method)}</span></td>
+          <td>${d.status==='pending'?'<span class="tag yellow">PENDING</span>':
+                d.status==='approved'?'<span class="tag green">APPROVED</span>':
+                '<span class="tag red">REJECTED</span>'}</td>
+          <td>${fmtDate(d.created_at)}</td>
+          <td>${d.status==='pending'?`
+            <button class="btn btn-green" onclick="approveDep(${d.id})"><i class="fa-solid fa-check"></i> APPROVE</button>
+            <button class="btn btn-red" onclick="rejectDep(${d.id})"><i class="fa-solid fa-xmark"></i> REJECT</button>
+          `:'<span style="color:var(--muted);font-size:11px">done</span>'}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch(e){ t.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
+}
+
+async function approveDep(id){
+  if (!confirm('Approve deposit #' + id + '?')) return;
+  try { await api(`/api/admin/deposits/${id}/approve`, { method:'POST' }); toast('Approved ✅'); loadDeposits(); }
+  catch(e){ toast(e.message, true); }
+}
+async function rejectDep(id){
+  if (!confirm('Reject deposit #' + id + '?')) return;
+  try { await api(`/api/admin/deposits/${id}/reject`, { method:'POST' }); toast('Rejected'); loadDeposits(); }
+  catch(e){ toast(e.message, true); }
+}
+
+async function renderProducts(){
+  const el = $('tab-products');
+  el.innerHTML = `<div class="section-head"><h2>PRODUCTS</h2>
+    <button class="btn btn-primary" onclick="productModal()"><i class="fa-solid fa-plus"></i> NEW PRODUCT</button></div>
+    <div id="prodTable"></div>`;
+  loadProducts();
+}
+
+async function loadProducts(){
+  const t = $('prodTable');
+  t.innerHTML = 'Loading...';
+  try {
+    const { products } = await api('/api/admin/products');
+    if (!products.length) { t.innerHTML = '<div class="empty">Belum ada produk.</div>'; return; }
+    t.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Tag</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${products.map(p => `
+        <tr><td>#${p.id}</td>
+          <td><i class="${esc(p.icon)}" style="color:${esc(p.color)};margin-right:6px"></i>${esc(p.name)}</td>
+          <td>${fmtRp(p.price)}</td>
+          <td>${p.tag?`<span class="tag yellow">${esc(p.tag)}</span>`:'-'}</td>
+          <td>${p.enabled?'<span class="tag green">ON</span>':'<span class="tag red">OFF</span>'}</td>
+          <td><button class="btn btn-cyan" onclick='productModal(${JSON.stringify(p).replace(/'/g,"&#39;")})'><i class="fa-solid fa-pen"></i></button>
+              <button class="btn btn-red" onclick="deleteProduct(${p.id})"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch(e){ t.innerHTML = 'Error: ' + esc(e.message); }
+}
+
+function productModal(p){
+  p = p || {};
+  openModal(`
+    <div class="modal-head"><h3>${p.id?'EDIT':'NEW'} PRODUCT</h3><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <label class="field-label">NAME</label><input class="input" id="p_name" value="${esc(p.name||'')}">
+    <label class="field-label">ICON</label><input class="input" id="p_icon" value="${esc(p.icon||'fa-box')}">
+    <label class="field-label">COLOR</label><input class="input" id="p_color" value="${esc(p.color||'#fff')}">
+    <label class="field-label">PRICE (Rp)</label><input class="input" id="p_price" type="number" value="${p.price||0}">
+    <label class="field-label">TAG</label><input class="input" id="p_tag" value="${esc(p.tag||'')}">
+    <label class="field-label">DESCRIPTION</label><textarea class="input" id="p_desc">${esc(p.description||'')}</textarea>
+    <label class="checkbox-row"><input type="checkbox" id="p_en" ${p.enabled!==false?'checked':''}> Enabled</label>
+    <button class="btn-primary" style="margin-top:14px" onclick="saveProduct(${p.id||0})">SAVE</button>
+  `);
+}
+
+async function saveProduct(id){
+  const body = { name: $('p_name').value, icon: $('p_icon').value, color: $('p_color').value,
+    price: Number($('p_price').value), tag: $('p_tag').value || null,
+    description: $('p_desc').value, enabled: $('p_en').checked };
+  try {
+    if (id) await api('/api/admin/products/' + id, { method:'PATCH', body });
+    else    await api('/api/admin/products', { method:'POST', body });
+    closeModal(); toast('Saved'); loadProducts();
+  } catch(e){ toast(e.message, true); }
+}
+async function deleteProduct(id){
+  if (!confirm('Hapus produk #' + id + '?')) return;
+  try { await api('/api/admin/products/' + id, { method:'DELETE' }); toast('Deleted'); loadProducts(); }
+  catch(e){ toast(e.message, true); }
+}
+
+async function renderTools(){
+  const el = $('tab-tools');
+  el.innerHTML = `<div class="section-head"><h2>TOOLS</h2>
+    <button class="btn btn-primary" onclick="toolModal()"><i class="fa-solid fa-plus"></i> NEW TOOL</button></div>
+    <div id="toolTable"></div>`;
+  loadTools();
+}
+
+async function loadTools(){
+  const t = $('toolTable');
+  t.innerHTML = 'Loading...';
+  try {
+    const { tools } = await api('/api/admin/tools');
+    if (!tools.length) { t.innerHTML = '<div class="empty">Belum ada tool.</div>'; return; }
+    t.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Name</th><th>Cost</th><th>Req Level</th><th>Req Badge</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${tools.map(x => `
+        <tr><td>#${x.id}</td>
+          <td><i class="${esc(x.icon)}" style="color:${esc(x.color)};margin-right:6px"></i>${esc(x.name)}</td>
+          <td>${x.token_cost} token</td><td>LV ${x.required_level}</td>
+          <td>${x.required_badge?`<span class="tag purple">${esc(x.required_badge)}</span>`:'-'}</td>
+          <td>${x.enabled?'<span class="tag green">ON</span>':'<span class="tag red">OFF</span>'}</td>
+          <td><button class="btn btn-cyan" onclick='toolModal(${JSON.stringify(x).replace(/'/g,"&#39;")})'><i class="fa-solid fa-pen"></i></button>
+              <button class="btn btn-red" onclick="deleteTool(${x.id})"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch(e){ t.innerHTML = 'Error: ' + esc(e.message); }
+}
+
+function toolModal(x){
+  x = x || {};
+  openModal(`
+    <div class="modal-head"><h3>${x.id?'EDIT':'NEW'} TOOL</h3><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <label class="field-label">NAME</label><input class="input" id="t_name" value="${esc(x.name||'')}">
+    <label class="field-label">ICON</label><input class="input" id="t_icon" value="${esc(x.icon||'fa-wrench')}">
+    <label class="field-label">COLOR</label><input class="input" id="t_color" value="${esc(x.color||'#fff')}">
+    <label class="field-label">TOKEN COST</label><input class="input" id="t_cost" type="number" value="${x.token_cost||1}">
+    <label class="field-label">REQUIRED LEVEL</label><input class="input" id="t_lvl" type="number" value="${x.required_level||0}">
+    <label class="field-label">REQUIRED BADGE</label>
+    <select class="input" id="t_badge">
+      <option value="">- none -</option>
+      ${['basic','special','silver','gold','diamond','star'].map(b=>`<option value="${b}" ${x.required_badge===b?'selected':''}>${b}</option>`).join('')}
+    </select>
+    <label class="field-label">DESCRIPTION</label><textarea class="input" id="t_desc">${esc(x.description||'')}</textarea>
+    <label class="checkbox-row"><input type="checkbox" id="t_en" ${x.enabled!==false?'checked':''}> Enabled</label>
+    <button class="btn-primary" style="margin-top:14px" onclick="saveTool(${x.id||0})">SAVE</button>
+  `);
+}
+
+async function saveTool(id){
+  const body = { name: $('t_name').value, icon: $('t_icon').value, color: $('t_color').value,
+    token_cost: Number($('t_cost').value), required_level: Number($('t_lvl').value),
+    required_badge: $('t_badge').value || null,
+    description: $('t_desc').value, enabled: $('t_en').checked };
+  try {
+    if (id) await api('/api/admin/tools/' + id, { method:'PATCH', body });
+    else    await api('/api/admin/tools', { method:'POST', body });
+    closeModal(); toast('Saved'); loadTools();
+  } catch(e){ toast(e.message, true); }
+}
+async function deleteTool(id){
+  if (!confirm('Hapus tool #' + id + '?')) return;
+  try { await api('/api/admin/tools/' + id, { method:'DELETE' }); toast('Deleted'); loadTools(); }
+  catch(e){ toast(e.message, true); }
+}
+
+async function renderPayments(){
+  const el = $('tab-payments');
+  el.innerHTML = `<div class="section-head"><h2>PAYMENT METHODS</h2>
+    <button class="btn btn-primary" onclick="paymentModal()"><i class="fa-solid fa-plus"></i> NEW METHOD</button></div>
+    <div id="payTable"></div>`;
+  loadPayments();
+}
+
+async function loadPayments(){
+  const t = $('payTable');
+  t.innerHTML = 'Loading...';
+  try {
+    const { methods } = await api('/api/admin/payment-methods');
+    if (!methods.length) { t.innerHTML = '<div class="empty">Belum ada metode.</div>'; return; }
+    t.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Code</th><th>Name</th><th>Type</th><th>Config</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${methods.map(m => `
+        <tr><td>#${m.id}</td><td><code>${esc(m.code)}</code></td>
+          <td><i class="${esc(m.icon)}" style="margin-right:6px"></i>${esc(m.name)}</td>
+          <td><span class="tag cyan">${esc(m.type)}</span></td>
+          <td><code style="font-size:10px">${esc(JSON.stringify(m.config).slice(0,60))}...</code></td>
+          <td>${m.enabled?'<span class="tag green">ON</span>':'<span class="tag red">OFF</span>'}</td>
+          <td><button class="btn btn-cyan" onclick='paymentModal(${JSON.stringify(m).replace(/'/g,"&#39;")})'><i class="fa-solid fa-pen"></i></button>
+              <button class="btn btn-red" onclick="deletePayment(${m.id})"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch(e){ t.innerHTML = 'Error: ' + esc(e.message); }
+}
+
+function paymentModal(m){
+  m = m || { config: {} };
+  openModal(`
+    <div class="modal-head"><h3>${m.id?'EDIT':'NEW'} PAYMENT</h3><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <label class="field-label">CODE</label><input class="input" id="m_code" value="${esc(m.code||'')}" ${m.id?'disabled':''}>
+    <label class="field-label">NAME</label><input class="input" id="m_name" value="${esc(m.name||'')}">
+    <label class="field-label">ICON</label><input class="input" id="m_icon" value="${esc(m.icon||'fa-wallet')}">
+    <label class="field-label">TYPE</label>
+    <select class="input" id="m_type">
+      ${['qris','bank','ewallet'].map(x=>`<option value="${x}" ${m.type===x?'selected':''}>${x}</option>`).join('')}
+    </select>
+    <label class="field-label">CONFIG (JSON)</label>
+    <textarea class="input" id="m_config">${esc(JSON.stringify(m.config||{}, null, 2))}</textarea>
+    <label class="checkbox-row"><input type="checkbox" id="m_en" ${m.enabled!==false?'checked':''}> Enabled</label>
+    <button class="btn-primary" style="margin-top:14px" onclick="savePayment(${m.id||0})">SAVE</button>
+  `);
+}
+
+async function savePayment(id){
+  let config;
+  try { config = JSON.parse($('m_config').value || '{}'); }
+  catch(e){ return toast('Config JSON tidak valid', true); }
+  const body = { code: $('m_code').value, name: $('m_name').value, icon: $('m_icon').value,
+    type: $('m_type').value, config, enabled: $('m_en').checked };
+  try {
+    if (id) await api('/api/admin/payment-methods/' + id, { method:'PATCH', body });
+    else    await api('/api/admin/payment-methods', { method:'POST', body });
+    closeModal(); toast('Saved'); loadPayments();
+  } catch(e){ toast(e.message, true); }
+}
+async function deletePayment(id){
+  if (!confirm('Hapus metode #' + id + '?')) return;
+  try { await api('/api/admin/payment-methods/' + id, { method:'DELETE' }); toast('Deleted'); loadPayments(); }
+  catch(e){ toast(e.message, true); }
+}
+
+async function renderChat(){
+  const el = $('tab-chat');
+  el.innerHTML = `<div class="section-head"><h2>CHAT MODERATION</h2>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="loadChat()"><i class="fa-solid fa-rotate"></i> REFRESH</button>
+      <button class="btn btn-red" onclick="purgeChat()"><i class="fa-solid fa-broom"></i> PURGE OLD</button>
+    </div></div><div id="chatTable"></div>`;
+  loadChat();
+}
+
+async function loadChat(){
+  const t = $('chatTable');
+  t.innerHTML = 'Loading...';
+  try {
+    const { messages } = await api('/api/admin/chat/messages');
+    if (!messages.length) { t.innerHTML = '<div class="empty">Tidak ada pesan.</div>'; return; }
+    t.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>User</th><th>Type</th><th>Content</th><th>Time</th><th>Actions</th></tr></thead>
+      <tbody>${messages.map(m => `
+        <tr><td>#${m.id}</td>
+          <td><strong>${esc(m.username)}</strong> <span class="tag gray">#${m.user_id}</span></td>
+          <td><span class="tag cyan">${esc(m.type)}</span></td>
+          <td style="max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((m.content||'').slice(0,120))}</td>
+          <td>${fmtDate(m.created_at)}</td>
+          <td><button class="btn btn-red" onclick="deleteMsg(${m.id})"><i class="fa-solid fa-trash"></i></button>
+              <button class="btn btn-yellow" onclick="deleteUserMsg(${m.user_id})"><i class="fa-solid fa-ban"></i> All user</button></td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch(e){ t.innerHTML = 'Error: ' + esc(e.message); }
+}
+
+async function deleteMsg(id){
+  if (!confirm('Hapus pesan #' + id + '?')) return;
+  try { await api('/api/admin/chat/messages/' + id, { method:'DELETE' }); toast('Deleted'); loadChat(); }
+  catch(e){ toast(e.message, true); }
+}
+async function deleteUserMsg(uid){
+  if (!confirm('Hapus SEMUA pesan user #' + uid + '?')) return;
+  try { const r = await api('/api/admin/chat/users/' + uid, { method:'DELETE' }); toast(`Deleted ${r.deleted}`); loadChat(); }
+  catch(e){ toast(e.message, true); }
+}
+async function purgeChat(){
+  if (!confirm('Hapus semua pesan lebih dari 7 hari?')) return;
+  try { const r = await api('/api/admin/chat/purge', { method:'POST', body:{} }); toast(`Purged ${r.deleted}`); loadChat(); }
+  catch(e){ toast(e.message, true); }
+}
+
+function renderBroadcast(){
+  const el = $('tab-notif');
+  el.innerHTML = `<div class="section-head"><h2>BROADCAST NOTIFICATION</h2></div>
+    <div class="table-wrap" style="padding:22px">
+      <label class="field-label">TYPE</label>
+      <select class="input" id="b_type"><option value="info">info</option><option value="ok">ok</option><option value="warn">warn</option></select>
+      <label class="field-label">TITLE</label><input class="input" id="b_title" placeholder="Judul notifikasi">
+      <label class="field-label">MESSAGE</label><textarea class="input" id="b_msg" placeholder="Isi pesan..."></textarea>
+      <button class="btn-primary" style="margin-top:14px;max-width:280px" onclick="sendBroadcast()"><i class="fa-solid fa-bullhorn"></i> KIRIM KE SEMUA USER</button>
+    </div>`;
+}
+
+async function sendBroadcast(){
+  if (!confirm('Kirim notifikasi ke semua user aktif?')) return;
+  try {
+    await api('/api/admin/notifications/broadcast', { method:'POST', body:{
+      type: $('b_type').value, title: $('b_title').value, message: $('b_msg').value }});
+    toast('Broadcast terkirim ✅'); $('b_title').value = ''; $('b_msg').value = '';
+  } catch(e){ toast(e.message, true); }
+}
+
+async function renderTrx(){
+  const el = $('tab-trx');
+  el.innerHTML = `<div class="section-head"><h2>TRANSACTIONS LOG</h2>
+    <button class="btn btn-ghost" onclick="renderTrx()"><i class="fa-solid fa-rotate"></i> REFRESH</button></div>
+    <div id="trxTable">Loading...</div>`;
+  try {
+    const { transactions } = await api('/api/admin/transactions?limit=200');
+    if (!transactions.length) { $('trxTable').innerHTML = '<div class="empty">Belum ada transaksi.</div>'; return; }
+    $('trxTable').innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>User</th><th>Type</th><th>Amount</th><th>Note</th><th>Time</th></tr></thead>
+      <tbody>${transactions.map(t => `
+        <tr><td>#${t.id}</td><td>${esc(t.username)}</td>
+          <td><span class="tag ${t.amount<0?'red':'green'}">${esc(t.type)}</span></td>
+          <td>${t.amount>0?'+':''}${fmtRp(t.amount)}</td>
+          <td>${esc(t.note||'-')}</td><td>${fmtDate(t.created_at)}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch(e){ $('trxTable').innerHTML = 'Error: ' + esc(e.message); }
+}
+
+(async () => {
+  if (TOKEN) {
+    try {
+      const u = await api('/api/user/me');
+      if (u.is_admin) { ME = u; enterApp(); return; }
+    } catch(_) {}
+    localStorage.removeItem('roxu_admin_token');
+    TOKEN = '';
+  }
+  $('loginView').style.display = 'flex';
+})();
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && $('loginView').style.display !== 'none') doLogin();
+});
+</script>
+</body>
+</html>
