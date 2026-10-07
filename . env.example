@@ -1,0 +1,6 @@
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
+JWT_SECRET=change_this_to_random_64_chars
+JWT_EXPIRES_IN=30d
+PORT=3000
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
