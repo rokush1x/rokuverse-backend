@@ -1,0 +1,110 @@
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  balance BIGINT NOT NULL DEFAULT 0,
+  xp INTEGER NOT NULL DEFAULT 0,
+  badge VARCHAR(30) NOT NULL DEFAULT 'basic',
+  avatar_url TEXT,
+  special_expiry TIMESTAMPTZ,
+  token_remaining INTEGER NOT NULL DEFAULT 0,
+  token_limit INTEGER NOT NULL DEFAULT 0,
+  is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+  is_banned BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS user_badges (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  badge VARCHAR(30) NOT NULL,
+  expires_at TIMESTAMPTZ,
+  purchased_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, badge)
+);
+
+CREATE TABLE IF NOT EXISTS products (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  icon VARCHAR(50) DEFAULT 'fa-box',
+  color VARCHAR(20) DEFAULT '#fff',
+  description TEXT,
+  price BIGINT NOT NULL,
+  tag VARCHAR(30),
+  enabled BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS tools (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  icon VARCHAR(50) DEFAULT 'fa-wrench',
+  color VARCHAR(20) DEFAULT '#e8eaee',
+  description TEXT,
+  token_cost INTEGER DEFAULT 1,
+  required_level INTEGER DEFAULT 0,
+  required_badge VARCHAR(30),
+  enabled BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS deposits (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  amount BIGINT NOT NULL,
+  method VARCHAR(30) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  approved_at TIMESTAMPTZ,
+  approved_by INTEGER REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  type VARCHAR(20) NOT NULL DEFAULT 'text',
+  file_name VARCHAR(255),
+  file_size BIGINT,
+  file_type VARCHAR(100),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  type VARCHAR(20) DEFAULT 'info',
+  title VARCHAR(200) NOT NULL,
+  message TEXT,
+  read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS payment_methods (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(30) UNIQUE NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  icon VARCHAR(50) DEFAULT 'fa-wallet',
+  type VARCHAR(20) NOT NULL,
+  config JSONB DEFAULT '{}'::jsonb,
+  enabled BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type VARCHAR(30) NOT NULL,
+  amount BIGINT NOT NULL,
+  note TEXT,
+  ref_id INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS tool_usages (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  tool_id INTEGER NOT NULL REFERENCES tools(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
